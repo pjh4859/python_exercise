@@ -54,10 +54,15 @@ for epoch in range(10):
         loss.backward()
         optim.step()  # 여기서 파라미터들의 값이변함
 
-    # break
+    break
 
 plt.figure()
 plt.plot(range(len(list_loss)), list_loss, linestyle='--')
 plt.show()
 
 torch.save(model.state_dict(), "my_first_model2.pt")
+
+# 파라미터가 많으면 오버피팅이 일어날 수 있다. 필터가 많은것도 그런 현상을 낳을 수 있다.
+# 필터 = 채널= 커널 같은 말
+# 인풋픽쳐가 1024x1024 같이 크면 메모리를 많이 먹고 파라미터 수를 늘릴 수가 없다 그래서 인풋픽쳐를 작게 해주기 위해
+# 스트라이드를 적용하기도 한다.

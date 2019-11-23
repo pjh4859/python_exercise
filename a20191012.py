@@ -12,8 +12,10 @@ class ResidualBlock(nn.Module):
     def __init__(self, n_ch):
         super(ResidualBlock,self).__init__()
         self.conv1=nn.Conv2d(n_ch, n_ch,kernel_size=3,padding=1, bias=False)
-        self.bn1=nn.BatchNorm2d(n_ch) #배치노말라이제이션 채널마다 해줌
-        self.act =nn.ReLU(inplace=True) #인플레이스 True 는 함수 통과한 애가 통과하기 전과 메모리 공간이 같은것 (메모리 아끼는데 쓰는듯)
+        self.bn1=nn.BatchNorm2d(n_ch) #배치노말라이제이션 채널마다 해줌.
+        #배치노말라이제이션은 가우시안 그림 변하는 것으로 설명했었음 너무 왜곡되지 않게.
+        self.act =nn.ReLU(inplace=True) #ReLU는 웨이트가 없음.
+        #인플레이스 True 는 함수 통과한 애가 통과하기 전과 메모리 공간이 같은것 (메모리 아끼는데 쓰는듯).
         self.conv2=nn.Conv2d(n_ch,n_ch,kernel_size=3,padding=1,bias=False)
         self.bn2=nn.BatchNorm2d(n_ch)
 
@@ -24,7 +26,7 @@ class ResidualBlock(nn.Module):
         y = self.conv2(y)
         y = self.bn2(y)
 
-        return self.act(x +y)
+        return self.act(x +y)#액티베이션이 왜 필요한가
 
 class ResidualNetwork(nn.Module):
     def __init__(self):

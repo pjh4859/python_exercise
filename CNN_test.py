@@ -12,7 +12,7 @@ dataset=MNIST(root='./datasets_test', download=True, train=False, transform=ToTe
 data_loader = DataLoader(dataset, batch_size=32, shuffle=False)
 
 model = CNN() #초기상태 모델이라 다르지만 레이어 같은 골격은 동일함
-weight_dict = torch.load('./CNN_model6.pt')
+weight_dict = torch.load('./CNN_model1.pt')
 
 for k,_ in weight_dict.items():
     print(k)

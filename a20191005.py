@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from torchvision.datasets import MNIST
 from torchvision.transforms import Compose, ToTensor, Normalize
 from torch.utils.data import DataLoader
-from tqdm import tqdm #타카도미 진행된 정도 볼 수 있음
+from tqdm import tqdm #타카둠 진행된 정도 볼 수 있음
 import matplotlib.pyplot as plt
 import os
 import numpy as np
@@ -13,7 +13,7 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         self.input_layer = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=(3, 3), padding=1)  # 1x28x28 -> 16x28x28
-        # o = (i - k +2p) //2 + 1
+        # o = (i - k +2p) //s + 1
         self.layer_1 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), padding=1, stride=2)  # 32x14x14
         self.layer_2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), padding=1, stride=2)  # 64x7x7
         self.layer_3 = nn.AdaptiveAvgPool2d((1, 1))  # 64x1x1
@@ -32,7 +32,7 @@ class CNN(nn.Module):
 if __name__== '__main__': # 이 파일 불러올 때 특정부분만 불러오기 위해서 만듦: 간접적으로 불러왔을 때 이 행 밑으로는 실행 안함
     transforms = Compose([ToTensor(),  # -> [0,1]
                           Normalize(mean=[0.5], std=[0.5])])  # -> [-1,1]  #MNIST 데이터를 가져올 떄 이런 처리과정을 거쳐 가져오자
-
+    # 위의 transforms 를 테스트할때랑 동일하게 해줘야 제대로 돌아감.
     dataset = MNIST(root='./datasets', download=True, transform=ToTensor(), train=True)
     data_loader = DataLoader(dataset=dataset, batch_size=32, shuffle=True)
 
@@ -55,7 +55,7 @@ if __name__== '__main__': # 이 파일 불러올 때 특정부분만 불러오�
     for epoch in range(10):
         for input, label in tqdm(data_loader):
             #label 32 답 한개씩 배치사이즈 만큼
-            results = model(input) #32x10  파이토치가 이 10개 (0부터9) 중 가장 웨이트가 큰 것이 모델이 생각하는답이라 생각해 얘랑 라벨만 비교하는 듯(파이토치가 알아서 해준다)
+            results = model(input) #32x10  파이토치가 이 10개 (0부터9) 중 값이 가장 큰 것이 모델이 생각하는답이라 생각해 얘랑 라벨만 비교하는 듯(파이토치가 알아서 해준다)
             loss = criterion(results, label) #결과, 라벨 순서 꼭 지켜야함 안지키면 돌아가긴 함 근데 결과가 전혀 다름
             # list_loss.append(loss.item())
 
@@ -71,7 +71,7 @@ if __name__== '__main__': # 이 파일 불러올 때 특정부분만 불러오�
 
     weight_dict1 = {'model_weight': model.state_dict(), 'adam_weight': optim.state_dict()}
     # torch.save(model,"./CNN_model.pt") #이렇게 저장하면 모델이 정의된 파일이랑 모델의 위치가 같아야 실행됨
-    # troch.save(model.state_dict(),"./CNN_mocel.pt")  #이렇게 저장하면 모델이 저의된 파이썬 파일과 동일한 위치에 없어도 됨 (항상 이게 위에꺼보다 낫다)
+    # troch.save(model.state_dict(),"./CNN_mocel.pt")  #이렇게 저장하면 모델이 정의된 파이썬 파일과 동일한 위치에 없어도 됨 (항상 이게 위에꺼보다 낫다)
     # torch.save(optim.state_dict(),"./adam.pt") #adam도 웨이트를 가지고있어서 저장할 경우. 위엣줄과 하면 파일이 두개 생성됨 따라서 하나로 만들기위해
     # 위에 weight_dict1 을 정의해줘서 하나의 파일로 저장
     torch.save(weight_dict1, "./CNN_model6.pt")
