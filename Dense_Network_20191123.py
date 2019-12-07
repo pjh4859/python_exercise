@@ -2,28 +2,33 @@ import torch
 import torch.nn as nn
 
 
+# Dence network 장점:  1.기울기소실문제를 해결
+#                      2.이전 레이어와 아웃풋 픽쳐가 많이 달라서 효과가 좋다?
+#                      3.
+
 class DenseLayer(nn.Module):
     def __init__(self, n_ch, growth_rate):
         super(DenseLayer, self).__init__()
         layer = []
         layer += [nn.BatchNorm2d(n_ch),
                   nn.ReLU(True),
-                  nn.Conv2d(n_ch, growth_rate, 3, padding=1, bias=False)]
+                  nn.Conv2d(n_ch, growth_rate, 3, padding=1, bias=False)] # Conv2d(인풋채널, 아웃풋채널, 커널, 패딩, 바이어스)
         # 여기에서 바이어스를 안걸어주는것은 위의 배치노말라이제이션에서 바이어스와 같은 역할을 해주기 때문에 안걸어 주는 것.
         self.layer = nn.Sequential(*layer)
 
     def forward(self, *inputs):
+        # feature+map_A: 16x32x256x256, feature_map_B: 16x32x256x256 -> 16x64x256x256 (concatenation along dim=1)
         x = self.layer(torch.cat(inputs, dim=1))  # (Denseblock 의 입력, 첫번째 레이어의 출력, 두 번째 레이어의 출력)
         return torch.cat((*inputs, x), dim=1)  # (16x 32x32)     (4x32x32)         (4x32x32)   >>  (24x32x32)
 
 
 class DenseBlock(nn.Module):
-    def __init__(self, n_layers, n_ch, growth_rate):
+    def __init__(self, n_layers, n_ch, growth_rate):  # growth_rate 은
         super(DenseBlock, self).__init__()
         for i in range(n_layers):
             setattr(self, "Dense_layer_{}".format(i), DenseLayer(n_ch + i * growth_rate, growth_rate))
         # self.Dense_layer_0 = DenseLayer(n_ch + 0 * growth_rate, growth_rate)
-        # self.Dense_layer_0 = DenseLayer(n_ch + 1 * growth_rate, growth_rate)
+        # self.Dense_layer_1 = DenseLayer(n_ch + 1 * growth_rate, growth_rate)
         # setattr 함수를 쓰면 위의 것을 한번에 씀.
         self.n_layers = n_layers
 
