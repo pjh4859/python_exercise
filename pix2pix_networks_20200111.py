@@ -132,7 +132,6 @@ class Generator(nn.Module):
             layers += [getattr(self, "Down_block_{}".format(i))(layers[-1])]
         x = getattr(self, "Up_block_{}".format(self.n_downsample - 1))(layers[-1])
 
-
         for i in range(self.n_downsample - 1, 0, -1):
             x = getattr(self, "Up_block_{}".format(i - 1))(torch.cat([x, layers[i]], dim=1))
 
