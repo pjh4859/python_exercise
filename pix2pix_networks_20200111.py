@@ -1,5 +1,6 @@
 import torch.nn as nn
-
+import torch
+from math import log2
 
 class Discriminator(nn.Module):
     def __init__(self, n_ch, patch_size):
@@ -7,7 +8,8 @@ class Discriminator(nn.Module):
         act = nn.LeakyReLU(0.2, inplace=True)
         n_df = 64
 
-        if patch_size == 1:
+        # patch_size 를 바꾸려면, kernel_size 와 stride 를 바꾸면 된다. 아직 배우지 않은 다른 것도 있다.
+        if patch_size == 1:  # patch_size 는 receptive field 의 사이즈
             model = [nn.Conv2d(n_ch, n_df, kernel_size=1, bias=False),
                      act]
             model += [nn.Conv2d(n_df, 2 * n_df, kernel_size=1, bias=False),
@@ -62,6 +64,11 @@ class Discriminator(nn.Module):
 
         model += [nn.Sigmoid()]
         self.model = nn.Sequential(*model)
+        print(self)
+        print("The number of learnable params in Discriminator: {:d}\n\n".format(
+            sum(p.numel() for p in self.parameters() if p.requires_grad)))
+        # self.parameters() 는 모든 파라미터인데 그 중 p.requires_grad 로 grad가 필요한 애들만 출력한다. grad가 필요하다는 것은
+        # grad 로 업데이트를 할 수 있는 파라미터들을 의미한다.
 
     def forward(self, x):
         return self.model(x)
@@ -72,7 +79,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         act_down = nn.LeakyReLU(negative_slope=0.2, inplace=True)
         act_up = nn.ReLU(inplace=True)
-        max_ch = 1024
+        max_ch = 512
         n_downsample = int(log2(size))
         n_gf = 64
         norm = nn.BatchNorm2d
@@ -92,7 +99,6 @@ class Generator(nn.Module):
                 up_block = [act_up,
                             nn.ConvTranspose2d(4 * n_gf, n_gf, kernel_size=4, padding=1, stride=2, bias=False),
                             norm(n_gf)]
-
 
             elif idx_max_ch < i < n_downsample - 4:
                 down_block = [act_down,
@@ -116,6 +122,7 @@ class Generator(nn.Module):
                               nn.Conv2d(n_gf, n_gf, kernel_size=4, padding=1, stride=2, bias=False)]
                 up_block = [act_up,
                             nn.ConvTranspose2d(n_gf, n_gf, kernel_size=4, padding=1, stride=2, bias=False),
+                            norm(n_gf),
                             nn.Dropout2d(0.5, inplace=True)]
 
             self.add_module("Down_block_{}".format(i), nn.Sequential(*down_block))
@@ -125,6 +132,9 @@ class Generator(nn.Module):
             n_gf *= 2 if n_gf < max_ch and i != 0 else 1
 
         self.n_downsample = n_downsample
+        print(self)
+        print("The number of learnable params in Discriminator: {:d}\n\n".format(
+            sum(p.numel() for p in self.parameters() if p.requires_grad)))
 
     def forward(self, x):
         layers = [x]
@@ -138,3 +148,5 @@ class Generator(nn.Module):
         return x
 # 스킵 커넥션은 원본의 형상을 유지하기 위해서이다.
 # 앞쪽 단의 애를 뒷쪽 단의 애들과 연결해주면 gradient 가 path 를 따라 넘어가게 되는데,
+# concat 은 채널 demension을 더해준다고 보통 생각하면 된다. 128 x 32 x 32 와 128 x 32 x32 를 concat인 경우 256 x 32 x 32
+# 더했을 경우 그대로 128 x 32 x 32 이다.
